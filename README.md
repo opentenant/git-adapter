@@ -1,9 +1,3 @@
-Here is the complete, SEO-optimized `README.md` for the new `git-adapter` library. 
-
-It covers the new core operations (`cloneRepo`, `commitFileAndPush`, `openMergeRequest`), explains the token configuration, and provides clear, copy-pasteable examples for both the API adapters and the Git subprocess utilities.
-
-***
-
 # Unified Git API Client & CLI for Node.js
 
 **A powerful, multi-platform Git SDK for Node.js and TypeScript.** 
@@ -18,7 +12,7 @@ Manage repositories, invite collaborators, create merge requests, and execute na
 - **Multi-Platform Support**: First-class support for GitHub, GitLab.com, and custom self-hosted GitLab instances.
 - **High-Level API**: Create repos, invite users, and open Merge Requests / Pull Requests programmatically.
 - **Native Git Operations**: Safely clone, commit, and push changes with built-in timeout, size limits, and isolated environments.
-- **Automatic Pagination**: Effortlessly fetch all repositories using built-in header-based pagination (`Link` and `X-Next-Page`).
+- **Explicit Pagination**: Fetch specific pages of repositories with full metadata (`hasNextPage`, `nextPage`) to prevent memory bloat and timeouts.
 - **Fully Typed**: Written in TypeScript with comprehensive interface definitions for requests and responses.
 - **Zero Dependencies**: Built on the native Node.js `fetch` API and `child_process` (Node 18+).
 
@@ -46,9 +40,15 @@ const git = getGitAdapter('github', {
   github: { agentUser: 'my-bot-user' }
 });
 
-// 2. Use the unified API (e.g., list all repos)
-const repos = await git.listRepos('ghp_your_personal_access_token');
-console.log(repos);
+// 2. Use the unified API (e.g., fetch the first page of repos)
+const result = await git.listRepos('ghp_your_personal_access_token', {
+  page: 1,
+  perPage: 30
+});
+
+console.log(result.data);        // Array of repositories
+console.log(result.hasNextPage); // true
+console.log(result.nextPage);    // 2
 ```
 
 ### Platform Configuration
@@ -65,11 +65,32 @@ console.log(repos);
 
 ### Repositories
 
-**List Repositories (with Pagination)**
-Fetches all repositories the authenticated user has access to. Handles pagination automatically.
+**List Repositories (Paginated)**
+Fetches a single page of repositories the authenticated user has access to.
+
 ```typescript
-const repos = await git.listRepos('your_access_token');
-// [ { full_name: 'org/repo-1', default_branch: 'main' }, ... ]
+const page1 = await git.listRepos('your_access_token', {
+  page: 1,
+  perPage: 100, // Max 100 for both GitHub and GitLab
+});
+
+// page1.data = [{ full_name: 'org/repo-1', default_branch: 'main' }, ...]
+```
+
+**Fetching all repositories (Manual Loop)**
+If you need to fetch everything, use the built-in pagination metadata to loop safely:
+
+```typescript
+let allRepos = [];
+let page = 1;
+let hasNext = true;
+
+while (hasNext) {
+  const result = await git.listRepos('your_access_token', { page, perPage: 100 });
+  allRepos.push(...result.data);
+  hasNext = result.hasNextPage;
+  page = result.nextPage || 1;
+}
 ```
 
 **Create a Repository**
