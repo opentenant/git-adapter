@@ -1,4 +1,3 @@
-
 export interface PaginationParams {
   page?: number;
   perPage?: number; // Max 100 for GitHub, GitLab
@@ -44,10 +43,7 @@ export interface MergeRequestResult {
 }
 
 export interface GitAdapter {
-  listRepos(
-    token: string,
-    params?: PaginationParams,
-  ): Promise<PaginatedRepos>;
+  listRepos(token: string, params?: PaginationParams): Promise<PaginatedRepos>;
   getRepo(token: string, fullName: string): Promise<any>;
   getFile(
     token: string,

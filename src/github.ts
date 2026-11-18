@@ -1,4 +1,13 @@
-import { GitAdapter, GitFile, DirEntry, InviteRole, MergeRequestOptions, MergeRequestResult, PaginationParams, PaginatedRepos } from './types';
+import {
+  GitAdapter,
+  GitFile,
+  DirEntry,
+  InviteRole,
+  MergeRequestOptions,
+  MergeRequestResult,
+  PaginationParams,
+  PaginatedRepos,
+} from './types';
 
 export interface GitHubOptions {
   apiUrl?: string;
@@ -32,7 +41,7 @@ export class GitHubAdapter implements GitAdapter {
         }),
       },
     );
-    
+
     return { url: data.html_url };
   }
 
@@ -103,7 +112,7 @@ export class GitHubAdapter implements GitAdapter {
     if (!res.ok) throw new Error(`github_api_error:${res.status}`);
 
     const repos = await res.json();
-    
+
     // Parse Link header for next page
     const link = res.headers.get('Link');
     const match = link?.match(/<[^>]+[?&]page=(\d+)[^>]*>;\s*rel="next"/);

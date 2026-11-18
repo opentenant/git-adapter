@@ -74,7 +74,9 @@ export const createGitEnv = (
   }
 
   if (!rawToken) {
-    throw new Error(`git_not_configured: Missing token for platform ${platform}`);
+    throw new Error(
+      `git_not_configured: Missing token for platform ${platform}`,
+    );
   }
 
   const tokenB64 = Buffer.from(`${username}:${rawToken}`).toString('base64');

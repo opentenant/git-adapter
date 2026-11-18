@@ -17,7 +17,9 @@ export const getGitAdapter = (
   }
   if (platform === 'gitlab.custom') {
     if (!options.customGitlab?.apiUrl) {
-      throw new Error('CustomGitlabAdapter requires an apiUrl in options.customGitlab');
+      throw new Error(
+        'CustomGitlabAdapter requires an apiUrl in options.customGitlab',
+      );
     }
     return new CustomGitLabAdapter(options.customGitlab);
   }

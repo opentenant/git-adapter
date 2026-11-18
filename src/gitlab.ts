@@ -1,4 +1,13 @@
-import { GitAdapter, GitFile, DirEntry, InviteRole, MergeRequestOptions, MergeRequestResult, PaginationParams, PaginatedRepos } from './types';
+import {
+  GitAdapter,
+  GitFile,
+  DirEntry,
+  InviteRole,
+  MergeRequestOptions,
+  MergeRequestResult,
+  PaginationParams,
+  PaginatedRepos,
+} from './types';
 
 export interface GitLabOptions {
   apiUrl?: string;
@@ -195,10 +204,9 @@ export class GitLabAdapter implements GitAdapter {
         }),
       },
     );
-    
+
     return { url: data.web_url };
   }
-
 }
 
 /**

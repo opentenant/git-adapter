@@ -15,7 +15,7 @@ export interface CommitFileOptions {
 }
 
 /**
- * Writes a file into the cloned repository, commits it on a new branch, 
+ * Writes a file into the cloned repository, commits it on a new branch,
  * and pushes the branch to origin.
  */
 export const commitFileAndPush = async ({

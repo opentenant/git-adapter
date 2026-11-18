@@ -42,7 +42,7 @@ export const cloneRepo = async ({
 
   try {
     const env = createGitEnv(platform, tokens);
-    
+
     // Override HOME for the clone process to isolate SSH/Git config
     env.HOME = scratch;
 
@@ -56,15 +56,39 @@ export const cloneRepo = async ({
 
     if (SHA_PATTERN.test(ref)) {
       await mkdir(dest, { recursive: true });
-      await run(safe('init', '--quiet', dest), { env, cwd: scratch, timeoutMs });
-      await run(safe('remote', 'add', 'origin', url), { env, cwd: dest, timeoutMs });
-      
+      await run(safe('init', '--quiet', dest), {
+        env,
+        cwd: scratch,
+        timeoutMs,
+      });
+      await run(safe('remote', 'add', 'origin', url), {
+        env,
+        cwd: dest,
+        timeoutMs,
+      });
+
       try {
-        await run(safe('fetch', '--depth=1', 'origin', ref), { env, cwd: dest, timeoutMs });
-        await run(safe('checkout', '--quiet', 'FETCH_HEAD'), { env, cwd: dest, timeoutMs });
+        await run(safe('fetch', '--depth=1', 'origin', ref), {
+          env,
+          cwd: dest,
+          timeoutMs,
+        });
+        await run(safe('checkout', '--quiet', 'FETCH_HEAD'), {
+          env,
+          cwd: dest,
+          timeoutMs,
+        });
       } catch {
-        await run(safe('fetch', 'origin'), { env, cwd: dest, timeoutMs: timeoutMs * 3 });
-        await run(safe('checkout', '--quiet', ref), { env, cwd: dest, timeoutMs });
+        await run(safe('fetch', 'origin'), {
+          env,
+          cwd: dest,
+          timeoutMs: timeoutMs * 3,
+        });
+        await run(safe('checkout', '--quiet', ref), {
+          env,
+          cwd: dest,
+          timeoutMs,
+        });
       }
     } else {
       await run(
