@@ -1,3 +1,20 @@
+
+export interface PaginationParams {
+  page?: number;
+  perPage?: number; // Max 100 for GitHub, GitLab
+}
+
+export interface RepoInfo {
+  full_name: string;
+  default_branch: string;
+}
+
+export interface PaginatedRepos {
+  data: RepoInfo[];
+  hasNextPage: boolean;
+  nextPage?: number;
+}
+
 export interface GitFile {
   content: string;
   sha?: string;
@@ -27,6 +44,10 @@ export interface MergeRequestResult {
 }
 
 export interface GitAdapter {
+  listRepos(
+    token: string,
+    params?: PaginationParams,
+  ): Promise<PaginatedRepos>;
   getRepo(token: string, fullName: string): Promise<any>;
   getFile(
     token: string,
@@ -34,9 +55,6 @@ export interface GitAdapter {
     path: string,
     ref: string,
   ): Promise<GitFile>;
-  listRepos(
-    token: string,
-  ): Promise<{ full_name: string; default_branch: string }[]>;
   getContents(
     token: string,
     fullName: string,

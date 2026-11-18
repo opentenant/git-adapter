@@ -1,4 +1,4 @@
-import { GitAdapter, GitFile, DirEntry, InviteRole, MergeRequestOptions, MergeRequestResult } from './types';
+import { GitAdapter, GitFile, DirEntry, InviteRole, MergeRequestOptions, MergeRequestResult, PaginationParams, PaginatedRepos } from './types';
 
 export interface GitHubOptions {
   apiUrl?: string;
@@ -35,7 +35,7 @@ export class GitHubAdapter implements GitAdapter {
     
     return { url: data.html_url };
   }
-  
+
   protected async req(token: string, url: string, init?: RequestInit) {
     const res = await fetch(url, {
       ...init,
@@ -81,32 +81,42 @@ export class GitHubAdapter implements GitAdapter {
     }
   }
 
-  async listRepos(token: string) {
-    const repos: any[] = [];
-    let nextUrl: string | null =
-      `${this.api}/user/repos?per_page=100&sort=updated`;
+  async listRepos(
+    token: string,
+    params: PaginationParams = {},
+  ): Promise<PaginatedRepos> {
+    const page = params.page || 1;
+    const perPage = params.perPage || 30;
 
-    while (nextUrl) {
-      const res = await fetch(nextUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github+json',
-        },
-      });
-      if (!res.ok) throw new Error(`github_api_error:${res.status}`);
+    const url = new URL(`${this.api}/user/repos`);
+    url.searchParams.set('page', page.toString());
+    url.searchParams.set('per_page', perPage.toString());
+    url.searchParams.set('sort', 'updated');
 
-      const data = await res.json();
-      repos.push(...data);
+    const res: Response = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+      },
+    });
 
-      const link = res.headers.get('Link');
-      const match = link?.match(/<([^>]+)>;\s*rel="next"/);
-      nextUrl = match ? match[1] : null;
-    }
+    if (!res.ok) throw new Error(`github_api_error:${res.status}`);
 
-    return repos.map((r: any) => ({
-      full_name: r.full_name,
-      default_branch: r.default_branch,
-    }));
+    const repos = await res.json();
+    
+    // Parse Link header for next page
+    const link = res.headers.get('Link');
+    const match = link?.match(/<[^>]+[?&]page=(\d+)[^>]*>;\s*rel="next"/);
+    const nextPage = match ? parseInt(match[1], 10) : undefined;
+
+    return {
+      data: repos.map((r: any) => ({
+        full_name: r.full_name,
+        default_branch: r.default_branch,
+      })),
+      hasNextPage: !!nextPage,
+      nextPage,
+    };
   }
 
   async getContents(

@@ -1,4 +1,4 @@
-import { GitAdapter, GitFile, DirEntry, InviteRole, MergeRequestOptions, MergeRequestResult } from './types';
+import { GitAdapter, GitFile, DirEntry, InviteRole, MergeRequestOptions, MergeRequestResult, PaginationParams, PaginatedRepos } from './types';
 
 export interface GitLabOptions {
   apiUrl?: string;
@@ -57,28 +57,39 @@ export class GitLabAdapter implements GitAdapter {
     };
   }
 
-  async listRepos(token: string) {
-    const projects: any[] = [];
-    let nextPage: string | null = '1';
+  async listRepos(
+    token: string,
+    params: PaginationParams = {},
+  ): Promise<PaginatedRepos> {
+    const page = params.page || 1;
+    const perPage = params.perPage || 20;
 
-    while (nextPage) {
-      const res = await fetch(
-        `${this.api}/projects?membership=true&per_page=100&order_by=last_activity_at&page=${nextPage}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      if (!res.ok) throw new Error(`gitlab_api_error:${res.status}`);
+    const url = new URL(`${this.api}/projects`);
+    url.searchParams.set('page', page.toString());
+    url.searchParams.set('per_page', perPage.toString());
+    url.searchParams.set('membership', 'true');
+    url.searchParams.set('order_by', 'last_activity_at');
 
-      const data = await res.json();
-      projects.push(...data);
+    const res: Response = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      const next = res.headers.get('X-Next-Page');
-      nextPage = next && next !== '' ? next : null;
-    }
+    if (!res.ok) throw new Error(`gitlab_api_error:${res.status}`);
 
-    return projects.map((p: any) => ({
-      full_name: p.path_with_namespace.replace(/^\//, ''),
-      default_branch: p.default_branch,
-    }));
+    const projects = await res.json();
+
+    // Parse X-Next-Page header
+    const nextPageStr = res.headers.get('X-Next-Page');
+    const nextPage = nextPageStr ? parseInt(nextPageStr, 10) : undefined;
+
+    return {
+      data: projects.map((p: any) => ({
+        full_name: p.path_with_namespace.replace(/^\//, ''),
+        default_branch: p.default_branch,
+      })),
+      hasNextPage: !!nextPage,
+      nextPage,
+    };
   }
 
   async getContents(
