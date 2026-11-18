@@ -1,0 +1,56 @@
+{
+  "name": "git-adapter",
+  "version": "1.0.0",
+  "description": "Unified TypeScript SDK for GitHub, GitLab, and custom Git platforms",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opentenant/git-adapter.git"
+  },
+  "keywords": [
+    "git",
+    "github",
+    "gitlab",
+    "git-adapter",
+    "typescript",
+    "sdk",
+    "api-client",
+    "github-api",
+    "gitlab-api"
+  ],
+  "author": "opentenant",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/opentenant/git-adapter/issues"
+  },
+  "homepage": "https://github.com/opentenant/git-adapter#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
