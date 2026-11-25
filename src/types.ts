@@ -28,7 +28,14 @@ export interface DirEntry {
 
 export type InviteRole = 'read' | 'write' | 'admin';
 
-export type Platform = 'github' | 'gitlab' | 'gitlab.custom';
+export type Platform =
+  | 'github'
+  | 'gitlab'
+  | 'gitlab.custom'
+  | 'codeberg'
+  | 'forgejo.custom'
+  | 'gitea'
+  | 'gitea.custom';
 
 export interface MergeRequestOptions {
   repoFullName: string;
