@@ -5,7 +5,27 @@ export interface GitTokens {
   githubToken?: string;
   gitlabComToken?: string;
   gitlabCustomToken?: string;
+  codebergToken?: string;
+  forgejoCustomToken?: string;
+  giteaToken?: string;
+  giteaCustomToken?: string;
 }
+
+interface PlatformAuth {
+  tokenKey: keyof GitTokens;
+  username: string;
+}
+
+const PLATFORM_AUTH: Record<string, PlatformAuth> = {
+  github: { tokenKey: 'githubToken', username: 'x-access-token' },
+  gitlab: { tokenKey: 'gitlabComToken', username: 'oauth2' },
+  'gitlab.com': { tokenKey: 'gitlabComToken', username: 'oauth2' }, // legacy alias
+  'gitlab.custom': { tokenKey: 'gitlabCustomToken', username: 'oauth2' },
+  codeberg: { tokenKey: 'codebergToken', username: 'oauth2' },
+  'forgejo.custom': { tokenKey: 'forgejoCustomToken', username: 'oauth2' },
+  gitea: { tokenKey: 'giteaToken', username: 'oauth2' },
+  'gitea.custom': { tokenKey: 'giteaCustomToken', username: 'oauth2' },
+};
 
 export const run = (
   args: string[],
@@ -59,27 +79,21 @@ export const createGitEnv = (
   platform: string,
   tokens: GitTokens,
 ): NodeJS.ProcessEnv => {
-  const isGitLab = platform.includes('gitlab');
-  const isGitLabCom = platform === 'gitlab' || platform === 'gitlab.com';
-
-  let rawToken: string | undefined;
-  let username: string;
-
-  if (isGitLab) {
-    rawToken = isGitLabCom ? tokens.gitlabComToken : tokens.gitlabCustomToken;
-    username = 'oauth2';
-  } else {
-    rawToken = tokens.githubToken;
-    username = 'x-access-token';
+  const auth = PLATFORM_AUTH[platform];
+  if (!auth) {
+    throw new Error(`git_unsupported_platform: ${platform}`);
   }
 
+  const rawToken = tokens[auth.tokenKey];
   if (!rawToken) {
     throw new Error(
       `git_not_configured: Missing token for platform ${platform}`,
     );
   }
 
-  const tokenB64 = Buffer.from(`${username}:${rawToken}`).toString('base64');
+  const tokenB64 = Buffer.from(`${auth.username}:${rawToken}`).toString(
+    'base64',
+  );
 
   return {
     PATH: '/usr/local/bin:/usr/bin:/bin',
